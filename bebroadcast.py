@@ -148,7 +148,6 @@ class PacketPubSub:
 				# Decode sender
 				sender, payload = eval(pkt)
 
-
 				# Notify upper layer handler
 				self.notify(sender, payload)
 
@@ -247,9 +246,11 @@ class URBBroadcast:
 		if self.notify is not None:
 			# If need to notify higher level function to deal
 			# message, notify it
-			self.lock.acquire()
+			#self.lock.acquire()
 			self.notify(root, msg)
-			self.lock.release()
+			#self.lock.release()
+
+		# print(threading.get_ident())
 		l.debug('Uniform reliable deliver msg {0} from {1}'.format(msg, root))
 		print('Uniform reliable deliver msg {0} from {1}'.format(msg, root))
 
@@ -312,6 +313,8 @@ class FIFOBroadcast:
 					# Increment require
 					require += 1
 
+					continue
+
 				break
 
 			self.require_dict[root] = require
@@ -340,14 +343,14 @@ if __name__ == '__main__':
 	packet_pub_sub = PacketPubSub()
 
 	# Create broadcast object
-	fifo = URBBroadcast()
+	fifo = FIFOBroadcast()
 
 	# Start listening 
 	packet_pub_sub.start_packet_listen()
 
 	# Broadcast all messages
 	for index, m in enumerate(MESSAGES):
-		fifo.broadcast( m)
+		fifo.broadcast(index, m)
 
 	while True:
 		pass
