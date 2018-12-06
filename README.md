@@ -1,12 +1,12 @@
 # EPFL_CS451_DistributedAlgorithms
 
-Run
-#
-python bebroadcast.py hosts.conf pid 
-#
-to start uniform reliable broadcast
+Execute
+```
+g++ -std=c++11 -pthread fifo_broadcast_ver2.cpp -o a.out
+```
 
-One may set hosts.conf to increase or decrease number of process
-Message can be set inside the bebroadcast.py file, in the constant MESSAGE
-
-The FIFO broadcast is still under construction
+Then run 
+```
+./a.out pid hosts.conf num_msg
+```
+Feel free to add more process in ```hosts.conf```
