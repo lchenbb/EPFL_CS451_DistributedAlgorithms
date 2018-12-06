@@ -12,7 +12,7 @@ int parse_arguments(int argc, char** argv){
 		exit(-1);
 	}
 
-	PID = atoi(argv[1]) + 1;
+	PID = atoi(argv[1]);
 	num_msg = atoi(argv[3]);
 
 	char* host_file = argv[2];
@@ -136,7 +136,7 @@ const Pkt& print_pkt(const Pkt& pkt){
 	for (vector<int>::const_iterator it = pkt.begin();
 		it != pkt.end();
 		it++){
-		cout << *it;
+		cout << " " << *it;
 	}
 	cout << endl;
 	return pkt;
@@ -351,7 +351,7 @@ void check_causal_deliver(int sender,\
 }
 
 void causal_deliver(const Pkt& pkt){
-	cout << "Causal deliver";
+	cout << "d";
 	print_pkt(pkt);
 	causal_delivered.insert(pkt);
 	return;
@@ -371,7 +371,7 @@ void start(int signum){
 }
 
 void stop(int signum){
-	cout << "End" << endl;
+	cout << "Sayonara" << endl;
 	fclose(stdout);
 	close(server_sock);
 	close(client_sock);
@@ -388,9 +388,13 @@ int main(int argc, char** argv){
 
 	// Parse arguments
 	parse_arguments(argc, argv);
-	//string tmp = "da_proc_" + PID;
-	//string file_name = tmp + ".lov";
-	//freopen(file_name.c_str(), "w", stdout);
+
+	// Prepare logger
+	stringstream ss;
+	ss << "da_proc_" << PID << ".log";
+	string file_name = ss.str();
+
+	freopen(file_name.c_str(), "w+", stdout);
 	/*
 	while(!START){
 		this_thread::sleep_for(chrono::milliseconds(100));
@@ -414,7 +418,7 @@ int main(int argc, char** argv){
 		// threads.push_back(thread(beb_broadcast, pkt, false));
 		history.push_back({pkt[pkt.size() - 2],
 							pkt[pkt.size() - 1]});
-		cout << "sending " << i + 1 << "th msg" << endl;
+		cout << "b " << i + 1 << endl;
  	}
 
 

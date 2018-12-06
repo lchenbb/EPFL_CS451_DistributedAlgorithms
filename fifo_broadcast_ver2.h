@@ -15,6 +15,7 @@
 #include<csignal>
 #include<stdio.h>
 #include<unistd.h>
+#include<sstream>
 #include <arpa/inet.h>
 
 using namespace std;
