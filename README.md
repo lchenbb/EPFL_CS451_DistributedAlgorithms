@@ -10,3 +10,5 @@ Then run
 ./a.out pid hosts.conf num_msg
 ```
 Feel free to add more process in ```hosts.conf```
+
+The local causality delivery check script is added
