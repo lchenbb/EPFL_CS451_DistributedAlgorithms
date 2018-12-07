@@ -7,14 +7,17 @@ int parse_arguments(int argc, char** argv){
 	Store peer addresses
 	*/
 
-	if (argc < 4){
+	if (argc < 3){
 		cerr << "No enough arguments" << endl;
 		exit(-1);
 	}
 
 	PID = atoi(argv[1]);
-	num_msg = atoi(argv[3]);
 
+	if (argc == 4)
+		num_msg = atoi(argv[3]);
+	else
+		num_msg = 5;
 	char* host_file = argv[2];
 
 	// Decode host file information
@@ -33,13 +36,10 @@ int parse_arguments(int argc, char** argv){
 			}
 			if (count < num_peers){			
 				// Get addresses info
-				int first_delimiter = line.find(" ");
-				string filtered_line = line.substr(first_delimiter + 1);
+				int delimiter = line.find(" ");
 
-				int delimiter = filtered_line.find(" ");
-
-				const char* ip_address = filtered_line.substr(0, delimiter).c_str();
-				int port = atoi(filtered_line.substr(delimiter + 1).c_str());
+				const char* ip_address = line.substr(0, delimiter).c_str();
+				int port = atoi(line.substr(delimiter + 1).c_str());
 
 
 				// set peer address
@@ -96,6 +96,7 @@ int set_server_sock(const char* ip_address, long port){
 
 	if (bind(server_sock, (struct sockaddr*) &myaddr, sizeof(myaddr)) < 0){
 		cerr << "Cannot bind to server addr" << endl;
+
 		exit(1);
 	}
 
@@ -188,8 +189,9 @@ void send_pkt(int peer){
 						 	0,
 						 	(struct sockaddr*) &peer_addr,
 						 	sizeof(peer_addr));
-			if (bytes < 0)
-				cerr << "Fail to send msg to " << peer << endl;
+
+			//if (bytes < 0)
+			//	cerr << "Fail to send msg to " << peer << endl;
 		}
 		mtx.unlock();
 		this_thread::sleep_for(chrono::milliseconds(10));
@@ -366,15 +368,18 @@ void start_listen(){
 
 void start(int signum){
 	START = true;
-	cout << "Start broadcasting" << endl;
+	cout << "Konijiwa" << endl;
 	return;
 }
 
 void stop(int signum){
-	cout << "Sayonara" << endl;
-	fclose(stdout);
+	// Close the socket
 	close(server_sock);
 	close(client_sock);
+
+	// Sayonara
+	cout << "Sayonara" << endl;
+	fclose(stdout);
 	exit(0);
 	
 	return;
@@ -393,13 +398,13 @@ int main(int argc, char** argv){
 	stringstream ss;
 	ss << "da_proc_" << PID << ".log";
 	string file_name = ss.str();
-
 	freopen(file_name.c_str(), "w+", stdout);
-	/*
+	
+	// Wait for start
 	while(!START){
 		this_thread::sleep_for(chrono::milliseconds(100));
 	}
-	*/
+	
 	
 	// Listen
 	threads.push_back(thread(start_listen));
@@ -408,10 +413,8 @@ int main(int argc, char** argv){
 	for (int peer = 0; peer < num_peers; peer++){
 		threads.push_back(thread(send_pkt, peer));
 	}
-	this_thread::sleep_for(chrono::milliseconds(500));
 	// Broadcast msgs
 	for (int i = 0; i < num_msg; i++){
-		this_thread::sleep_for(chrono::milliseconds(100));
 
 		Pkt pkt = build_pkt(i + 1);
 		encode_pkt(pkt);
