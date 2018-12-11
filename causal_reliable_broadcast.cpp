@@ -169,9 +169,7 @@ void encode_pkt(const Pkt& pkt){
 	//print_pkt(pkt);
 	wchar_t* pkt_ptr = new wchar_t[4096];
 	memset((wchar_t*) pkt_ptr, L'\0', 4096 * sizeof(wchar_t));
-	for (int i = 0; i < pkt.size(); i++){
-		pkt_ptr[i] = pkt[i];
-	}
+
 	// Put the wchar_t* to broadcast_pkts
 	mtx.lock();
 	broadcast_pkts.push_back(pkt_ptr);
