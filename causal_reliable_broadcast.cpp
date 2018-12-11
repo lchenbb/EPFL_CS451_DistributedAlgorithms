@@ -35,11 +35,16 @@ int parse_arguments(int argc, char** argv){
 				continue;
 			}
 			if (count < num_peers){			
-				// Get addresses info
-				int delimiter = line.find(" ");
 
-				const char* ip_address = line.substr(0, delimiter).c_str();
-				int port = atoi(line.substr(delimiter + 1).c_str());
+				// Get addresses info
+                                int first_white_space = line.find(" ");
+                                string filtered_string = line.substr(first_white_space + 1);
+                                //cout<< filtered_string <<endl;
+
+                                int delimiter = filtered_string.find(" ");
+
+				const char* ip_address = filtered_string.substr(0, delimiter).c_str();
+				int port = atoi(filtered_string.substr(delimiter + 1).c_str());
 
 
 				// set peer address
@@ -129,8 +134,7 @@ int set_client_sock(const char* ip_address, int port){
 
 	cout << "Successfully set up client in " << ip_address << ':' \
 	<< port + 20 << endl;
-
-	return 0;
+return 0;
 }
 
 const Pkt& print_pkt(const Pkt& pkt){
@@ -182,6 +186,10 @@ void send_pkt(int peer){
 	while (true){
 		mtx.lock();
 		for (int i = 0; i < broadcast_pkts.size(); i++){
+			for (int j = 0; j < sizeof(broadcast_pkts[i]) / sizeof(char); j++){
+				cout << broadcast_pkts[i][j];
+			}
+			cout << endl;
 			bytes = sendto(client_sock,\
 						 	broadcast_pkts[i],
 							min(BUFFER_SIZE * sizeof(wchar_t) / sizeof(char),
@@ -296,6 +304,7 @@ void urb_deliver(int sender,\
 					const Pkt& pkt){
 
 	check_causal_deliver(sender, fpkt, pkt);
+
 	return;
 }
 
@@ -370,7 +379,6 @@ void start_listen(){
 
 void start(int signum){
 	START = true;
-	cout << "Konijiwa" << endl;
 	return;
 }
 
@@ -379,17 +387,30 @@ void stop(int signum){
 	close(server_sock);
 	close(client_sock);
 
+	/*
+ 	// Stop the threads
+	for (vector<thread>::iterator it = threads.begin();
+		it != threads.end();
+		it++){
+		(*it).join();
+	}
+	*/
 	// Sayonara
-	cout << "Sayonara" << endl;
 	fclose(stdout);
 	exit(0);
 	
 	return;
 }
+
+void sig_continue(int signum){
+        cerr << "continue" << endl;
+	return;
+}
+
 int main(int argc, char** argv){
 
 	// Register signal handler
-	signal(SIGUSR1, start);
+	signal(SIGUSR2, start);
 	signal(SIGTERM, stop);
 	signal(SIGINT, stop);
 
@@ -398,7 +419,7 @@ int main(int argc, char** argv){
 
 	// Prepare logger
 	stringstream ss;
-	ss << "da_proc_" << PID << ".log";
+	ss << "da_proc_" << PID << ".out";
 	string file_name = ss.str();
 	freopen(file_name.c_str(), "w+", stdout);
 	
