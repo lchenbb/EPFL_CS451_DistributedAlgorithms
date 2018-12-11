@@ -2,12 +2,12 @@
 
 Execute
 ```
-g++ -std=c++11 -pthread fifo_broadcast_ver2.cpp -o a.out
+g++ -std=c++11 -pthread causal_reliable_broadcast.cpp -o da_proc
 ```
 
 Then run 
 ```
-./a.out pid hosts.conf num_msg
+./da_proc pid hosts.conf num_msg
 ```
 Feel free to add more process in ```hosts.conf```
 
