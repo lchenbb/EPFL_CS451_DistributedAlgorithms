@@ -1,4 +1,4 @@
-#include "fifo_broadcast_ver2.h"
+#include "causal_reliable_broadcast.h"
 
 int parse_arguments(int argc, char** argv){
 	/* 
@@ -35,17 +35,18 @@ int parse_arguments(int argc, char** argv){
 				continue;
 			}
 			if (count < num_peers){			
-
 				// Get addresses info
-                                int first_white_space = line.find(" ");
-                                string filtered_string = line.substr(first_white_space + 1);
-                                //cout<< filtered_string <<endl;
+				int first_space = line.find(" ");
+				string filtered_line = line.substr(first_space + 1);
 
-                                int delimiter = filtered_string.find(" ");
+				// Get ip address
+				int delimiter = filtered_line.find(" ");
+				char ip_address[16];
+				memset((char*) ip_address, 0, sizeof(ip_address));
+				filtered_line.copy(ip_address, delimiter);
 
-				const char* ip_address = filtered_string.substr(0, delimiter).c_str();
-				int port = atoi(filtered_string.substr(delimiter + 1).c_str());
-
+				// Get port num
+				int port = atoi(filtered_line.substr(delimiter + 1).c_str());
 
 				// set peer address
 				struct sockaddr_in peer_addr;
@@ -94,11 +95,12 @@ int set_server_sock(const char* ip_address, long port){
 	struct sockaddr_in myaddr;
 
 	memset((char*) &myaddr, 0, sizeof(myaddr));
-
+	cout << ip_address << ":" << port << endl;
 	myaddr.sin_family = AF_INET;
 	myaddr.sin_port = htons(port);
 	myaddr.sin_addr.s_addr = inet_addr(ip_address);
 
+	cout << ip_address << ":" << port << endl;
 	if (bind(server_sock, (struct sockaddr*) &myaddr, sizeof(myaddr)) < 0){
 		cerr << "Cannot bind to server addr" << endl;
 
@@ -134,7 +136,8 @@ int set_client_sock(const char* ip_address, int port){
 
 	cout << "Successfully set up client in " << ip_address << ':' \
 	<< port + 20 << endl;
-return 0;
+
+	return 0;
 }
 
 const Pkt& print_pkt(const Pkt& pkt){
@@ -169,7 +172,9 @@ void encode_pkt(const Pkt& pkt){
 	//print_pkt(pkt);
 	wchar_t* pkt_ptr = new wchar_t[4096];
 	memset((wchar_t*) pkt_ptr, L'\0', 4096 * sizeof(wchar_t));
-
+	for (int i = 0; i < pkt.size(); i++){
+		pkt_ptr[i] = pkt[i];
+	}
 	// Put the wchar_t* to broadcast_pkts
 	mtx.lock();
 	broadcast_pkts.push_back(pkt_ptr);
@@ -184,10 +189,6 @@ void send_pkt(int peer){
 	while (true){
 		mtx.lock();
 		for (int i = 0; i < broadcast_pkts.size(); i++){
-			for (int j = 0; j < sizeof(broadcast_pkts[i]) / sizeof(char); j++){
-				cout << broadcast_pkts[i][j];
-			}
-			cout << endl;
 			bytes = sendto(client_sock,\
 						 	broadcast_pkts[i],
 							min(BUFFER_SIZE * sizeof(wchar_t) / sizeof(char),
@@ -302,7 +303,6 @@ void urb_deliver(int sender,\
 					const Pkt& pkt){
 
 	check_causal_deliver(sender, fpkt, pkt);
-
 	return;
 }
 
@@ -385,26 +385,12 @@ void stop(int signum){
 	close(server_sock);
 	close(client_sock);
 
-	/*
- 	// Stop the threads
-	for (vector<thread>::iterator it = threads.begin();
-		it != threads.end();
-		it++){
-		(*it).join();
-	}
-	*/
 	// Sayonara
 	fclose(stdout);
 	exit(0);
 	
 	return;
 }
-
-void sig_continue(int signum){
-        cerr << "continue" << endl;
-	return;
-}
-
 int main(int argc, char** argv){
 
 	// Register signal handler
