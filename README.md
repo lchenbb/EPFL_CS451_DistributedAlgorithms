@@ -1,5 +1,7 @@
 # EPFL_CS451_DistributedAlgorithms
 
+This repo implements Uniform reliable broadcast and causal order broadcast.
+
 Execute
 ```
 g++ -std=c++11 -pthread causal_reliable_broadcast.cpp -o da_proc
